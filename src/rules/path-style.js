@@ -67,7 +67,7 @@ module.exports = {
 
 
         return {
-            CallExpression: getLodashMethodVisitor(settings, node => {
+            CallExpression: getLodashMethodVisitor(context, node => {
                 const propertyPathNode = getPropertyPathNode(node)
                 if (propertyPathNode) {
                     reportIfViolates[context.options[0] || 'string'](propertyPathNode)

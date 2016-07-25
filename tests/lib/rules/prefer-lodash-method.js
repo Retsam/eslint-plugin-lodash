@@ -12,6 +12,7 @@ const ruleTesterUtil = require('../testUtil/ruleTesterUtil')
 // ------------------------------------------------------------------------------
 
 const ruleTester = ruleTesterUtil.getRuleTester()
+const {withDefaultPragma} = require('../testUtil/optionsUtil')
 ruleTester.run('prefer-lodash-method', rule, {
     valid: [
         'var x = _.map(arr, f)',
@@ -34,7 +35,7 @@ ruleTester.run('prefer-lodash-method', rule, {
             options: [{ignorePatterns: ['^\\$.+']}]
         },
         '_.chain(a).get(p).map(f).value()'
-    ],
+    ].map(withDefaultPragma),
     invalid: [{
         code: 'var x = a.map(function(x) {return x.f()});',
         errors: [{message: 'Prefer \'_.map\' over the native function.'}]
@@ -47,5 +48,5 @@ ruleTester.run('prefer-lodash-method', rule, {
     }, {
         code: 'var x = Object.keys(node)',
         errors: [{message: "Prefer '_.keys' over the native function."}]
-    }]
+    }].map(withDefaultPragma)
 })

@@ -17,7 +17,7 @@ module.exports = {
         const settings = require('../util/settingsUtil').getSettings(context)
 
         return {
-            CallExpression: getLodashMethodVisitor(settings, node => {
+            CallExpression: getLodashMethodVisitor(context, node => {
                 if (isCallToMethod(node, settings.version, 'flatten') &&
                     (isCallToMethod(getCaller(node), settings.version, 'map') || isLodashCallToMethod(node.arguments[0], settings, 'map'))) {
                     context.report(node, 'Prefer _.flatMap over consecutive map and flatten.')

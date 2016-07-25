@@ -22,7 +22,7 @@ module.exports = {
         }
 
         return {
-            CallExpression: getLodashMethodVisitor(settings, (node, iteratee) => {
+            CallExpression: getLodashMethodVisitor(context, (node, iteratee) => {
                 if (isCallToMethod(node, settings.version, 'forEach') && onlyHasPush(iteratee)) {
                     context.report(node, 'Prefer _.map over a _.forEach with a push to an array inside')
                 }

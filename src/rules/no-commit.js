@@ -17,7 +17,7 @@ module.exports = {
         const settings = require('../util/settingsUtil').getSettings(context)
         return {
             CallExpression(node) {
-                if (isLodashChainStart(node, settings.pragma)) {
+                if (isLodashChainStart(node, settings.pragma, context)) {
                     do {
                         node = node.parent.parent
                     } while (isMethodCall(node) && !isCallToMethod(node, settings.version, 'commit'))

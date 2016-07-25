@@ -19,7 +19,7 @@ ruleTester.run('callback-binding', rule, {
         'var r = _.find(themeStyleList, function (themeStyle) { return this.x; }, this);',
         'var r = _.find(arr, function (i) { return this.x; }.bind(this, x));',
         'var r = _.zipWith([1],[2],[3], f);'
-    ].map(optionsUtil.fromVersion3).concat([
+    ].map(optionsUtil.fromVersion3WithDefaultPragma).concat([
         'var x = _.map(arr, f.bind(this))',
         'var x = _.find(users, function(user) { return user.age > this.age}.bind(this));',
         'var t = _.isArray(x)',
@@ -30,8 +30,9 @@ ruleTester.run('callback-binding', rule, {
     invalid: [
         'var r = _.find(users, function (user) { return user.age > this.age; }.bind(this));',
         'var r = _.find(users, predicate.bind(this));'
-    ].map(optionsUtil.fromVersion3).map(optionsUtil.fromMessage('Unnecessary bind, pass `thisArg` to lodash method instead')).concat([
+    ].map(optionsUtil.fromVersion3WithDefaultPragma).map(optionsUtil.fromMessage('Unnecessary bind, pass `thisArg` to lodash method instead')).concat([
         'var t = _.find(users, function(user) { return this.x === user}, this);',
         'var t = _.reduce(users, func, initial, this);'
-    ].map(optionsUtil.fromMessage('Do not use Lodash 3 thisArg, use binding instead')))
+    ].map(optionsUtil.withDefaultPragma).map(optionsUtil.fromMessage('Do not use Lodash 3 thisArg, use binding instead')))
+
 })

@@ -49,7 +49,7 @@ module.exports = {
         }
 
         return {
-            CallExpression: getLodashMethodVisitor(settings, (node, iteratee) => {
+            CallExpression: getLodashMethodVisitor(context, (node, iteratee) => {
                 if (isCallToMethod(node, settings.version, 'forEach') && onlyHasSimplifiableIf(iteratee)) {
                     context.report(node, 'Prefer _.filter or _.some over an if statement inside a _.forEach')
                 }

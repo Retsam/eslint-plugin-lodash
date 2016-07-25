@@ -12,17 +12,18 @@ const ruleTesterUtil = require('../testUtil/ruleTesterUtil')
 // ------------------------------------------------------------------------------
 
 const ruleTester = ruleTesterUtil.getRuleTester()
-const toErrorObject = require('../testUtil/optionsUtil').fromMessage('Prefer _.reject over negative condition')
+const {fromMessage, withDefaultPragma} = require('../testUtil/optionsUtil')
+const toErrorObject = fromMessage('Prefer _.reject over negative condition')
 ruleTester.run('prefer-reject', rule, {
     valid: [
         '_.filter(users, function(user) {return !user.active && isSomething;});',
         '_.filter(users, function(user) {return !f(user);});'
-    ],
+    ].map(withDefaultPragma),
     invalid: [
         '_(users).map(t).filter(function(user) {return !user.name.givenName})',
         '_.filter(users, function(user) {return user.name.givenName !== "Bob";});',
         '_.filter(users, function(user) {return !user.isSomething;});',
         '_.filter(arr, user => !user.active)',
         `_.filter(arr, _.negate(f));`
-    ].map(toErrorObject)
+    ].map(toErrorObject).map(withDefaultPragma)
 })

@@ -36,7 +36,7 @@ module.exports = {
         }
 
         return {
-            CallExpression: getShorthandVisitor(context, settings, {
+            CallExpression: getShorthandVisitor(context, {
                 canUseShorthand,
                 usesShorthand
             }, {

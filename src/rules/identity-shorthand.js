@@ -38,12 +38,12 @@ module.exports = {
 
         const canUseShorthand = overSome(isExplicitIdentityFunction, isLodashIdentityFunction)
 
-        function usesShorthand(node, iteratee) {
-            return methodSupportsShorthand(settings.version, node) && !iteratee
+        function usesShorthand(node, iteratee, method) {
+            return methodSupportsShorthand(settings.version, method) && !iteratee
         }
 
         return {
-            CallExpression: getShorthandVisitor(context, settings, {
+            CallExpression: getShorthandVisitor(context, {
                 canUseShorthand,
                 usesShorthand
             }, {

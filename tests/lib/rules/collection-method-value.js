@@ -12,7 +12,7 @@ const ruleTesterUtil = require('../testUtil/ruleTesterUtil')
 // ------------------------------------------------------------------------------
 
 const ruleTester = ruleTesterUtil.getRuleTester()
-const fromMessage = require('../testUtil/optionsUtil').fromMessage
+const {fromMessage, withDefaultPragma} = require('../testUtil/optionsUtil')
 ruleTester.run('collection-method-value', rule, {
     valid: [
         'x = _.map(arr, f)',
@@ -23,14 +23,14 @@ ruleTester.run('collection-method-value', rule, {
         {
             code: '_.remove(arr, f)', settings: {lodash: {version: 3}}
         }
-    ],
+    ].map(withDefaultPragma),
     invalid: [
         'x = _.forEach(arr, g)',
         'x = _(arr).map(f).forEach(g)',
         'x = _.chain(arr).map(f).forEach(g).value()'
-    ].map(fromMessage('Do not use value returned from _.forEach')).concat([
+    ].map(withDefaultPragma).map(fromMessage('Do not use value returned from _.forEach')).concat([
         '_.map(arr, f)',
         '_(arr).filter(g).map(f).value()',
         '_.chain(arr).find(p).map(f).value()'
-    ].map(fromMessage('Use value returned from _.map')))
+    ].map(withDefaultPragma).map(fromMessage('Use value returned from _.map')))
 })

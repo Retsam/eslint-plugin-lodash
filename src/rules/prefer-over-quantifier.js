@@ -67,7 +67,7 @@ module.exports = {
         }
 
         return {
-            CallExpression: getLodashMethodVisitor(settings, (node, iteratee) => {
+            CallExpression: getLodashMethodVisitor(context, (node, iteratee) => {
                 if (isCallToConditionMethod(node)) {
                     reportIfConnectiveOfParamInvocations(iteratee)
                     reportIfDoubleFilterLiteral(node)

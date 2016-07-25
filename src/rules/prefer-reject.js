@@ -32,7 +32,7 @@ module.exports = {
         }
 
         return {
-            CallExpression: getLodashMethodVisitor(settings, (node, iteratee) => {
+            CallExpression: getLodashMethodVisitor(context, (node, iteratee) => {
                 if (isCallToMethod(node, settings.version, 'filter') && isNegativeExpressionFunction(iteratee)) {
                     context.report(node, 'Prefer _.reject over negative condition')
                 }
