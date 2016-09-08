@@ -8,33 +8,56 @@ This change log adheres to standards from [Keep a CHANGELOG](http://keepachangel
 ### Added
 - (none)
 
-[unreleased]: https://github.com/wix/eslint-plugin-lodash/compare/v1.10.0...HEAD
+[unreleased]: https://github.com/wix/eslint-plugin-lodash/compare/v1.10.2...HEAD
+
+## [1.10.3] - 2016-09-05
+### Fixed
+- Made `prefer-lodash-method` not warn for `Object.create(null)`. ([`62f82fb`][62f82fb])
+
+[62f82fb]: https://github.com/wix/eslint-plugin-lodash/commit/62f82fb50a71f93ebe4d5834e818acdca22f6d22
+[1.10.3]: https://github.com/wix/eslint-plugin-lodash/compare/v1.10.3...v1.10.2
+
+## [1.10.2] - 2016-09-04
+### Fixed
+- Improved preformance for `unwrap`. ([`95be25a`][95be25a])
+- Added explanantion to docs for `prefer-lodash-method`. ([`1d57005`][1d57005])
+
+[95be25a]: https://github.com/wix/eslint-plugin-lodash/commit/95be25a5e73e72fda7616fc0853726cd1abf49b0
+[1d57005]: https://github.com/wix/eslint-plugin-lodash/commit/1d570057a19795a2eb3853a90826b1a318034967
+[1.10.2]: https://github.com/wix/eslint-plugin-lodash/compare/v1.10.2...v1.10.1
+
+## [1.10.1] - 2016-07-27
+### Fixed
+- Fixed case where `prefer-invoke-map` reports on destructured first iteratee arguments ([`88a7e54`][88a7e54])
+
+[88a7e54]: https://github.com/wix/eslint-plugin-lodash/commit/88a7e544850163354daed351b719e1d416e18807
+[1.10.1]: https://github.com/wix/eslint-plugin-lodash/compare/v1.10.1...v1.10.0
 
 
 ## [1.10.0] - 2016-07-20
 ### Added
-- Add option `ignorePatterns` to config of rule `prefer-lodash-method`. ([`1c01a5f`][1c01a5f])
+- Added option `ignorePatterns` to config of rule `prefer-lodash-method`. ([`1c01a5f`][1c01a5f])
 
 [1c01a5f]: https://github.com/wix/eslint-plugin-lodash/commit/1c01a5f023a7b29f4825132086eec946db3569d2
 [1.10.0]: https://github.com/wix/eslint-plugin-lodash/compare/v1.10.0...v1.9.4
 
 ## [1.9.4] - 2016-07-05
 ### Fixed
-- Add peerDependency for eslint >= 1.3.0 ([`4793496`][4793496])
+- Added peerDependency for eslint >= 1.3.0 ([`4793496`][4793496])
 
 [4793496]: https://github.com/wix/eslint-plugin-lodash/commit/47934965306a5056b7614729801031627ba2fa64
 [1.9.4]: https://github.com/wix/eslint-plugin-lodash/compare/v1.9.4...v1.9.3
 
 ## [1.9.3] - 2016-07-05
 ### Fixed
-- Fix argument counts for `find`, `findIndex`, `findLast` and `findLastIndex`. ([`bc7023a`][bc7023a])
+- Fixed argument counts for `find`, `findIndex`, `findLast` and `findLastIndex`. ([`bc7023a`][bc7023a])
 
 [bc7023a]: https://github.com/wix/eslint-plugin-lodash/commit/bc7023a2f663d1895ba2c456c962ca6ccddf9f61
 [1.9.3]: https://github.com/wix/eslint-plugin-lodash/compare/v1.9.3...v1.9.2
 
 ## [1.9.2] - 2016-06-02
 ### Fixed
-- Fix typo in argument count for Lodash 4 method `stubFalse`. ([`7efc67c`][7efc67c])
+- Fixed typo in argument count for Lodash 4 method `stubFalse`. ([`7efc67c`][7efc67c])
 
 [7efc67c]: https://github.com/wix/eslint-plugin-lodash/commit/7efc67c9aa4b97f281b36beca584aff34bd1396f
 [1.9.2]: https://github.com/wix/eslint-plugin-lodash/compare/v1.9.2...v1.9.1

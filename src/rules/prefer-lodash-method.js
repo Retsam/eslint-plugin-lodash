@@ -3,9 +3,6 @@
  */
 'use strict'
 
-/**
- * @fileoverview Rule to check if there's a method in the chain start that can be in the chain
- */
 //------------------------------------------------------------------------------
 // Rule Definition
 //------------------------------------------------------------------------------
@@ -48,13 +45,18 @@ module.exports = {
         const ignoredObjects = get(context, ['options', 0, 'ignoreObjects'], [])
         const ignoredPatterns = map(get(context, ['options', 0, 'ignorePatterns'], []), pattern => new RegExp(pattern))
 
+        function isNonNullObjectCreate(callerName, methodName, arg) {
+            return callerName === 'Object' && methodName === 'create' && get(arg, 'value') !== null
+        }
+
         function isStaticNativeMethodCall(node) {
             const staticMethods = {
-                Object: ['assign', 'create', 'keys', 'values'],
+                Object: ['assign', 'keys', 'values'],
                 Array: ['isArray']
             }
             const callerName = get(node, 'callee.object.name')
-            return (callerName in staticMethods) && includes(staticMethods[callerName], getMethodName(node))
+            const methodName = getMethodName(node)
+            return (callerName in staticMethods) && includes(staticMethods[callerName], methodName) || isNonNullObjectCreate(callerName, methodName, node.arguments[0])
         }
 
         function isUsingLodash(node) {
