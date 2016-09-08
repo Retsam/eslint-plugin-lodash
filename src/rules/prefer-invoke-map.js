@@ -3,9 +3,6 @@
  */
 'use strict'
 
-/**
- * @fileoverview Rule to check if a call to map should be a call to invokeMap
- */
 //------------------------------------------------------------------------------
 // Rule Definition
 //------------------------------------------------------------------------------
@@ -20,7 +17,8 @@ module.exports = {
         const {isCallFromObject, getValueReturnedInFirstLine, getFirstParamName} = require('../util/astUtil')
         const settings = require('../util/settingsUtil').getSettings(context)
         function isFunctionMethodCallOfParam(func) {
-            return isCallFromObject(getValueReturnedInFirstLine(func), getFirstParamName(func))
+            const firstParamName = getFirstParamName(func)
+            return firstParamName && isCallFromObject(getValueReturnedInFirstLine(func), firstParamName)
         }
 
         return {
