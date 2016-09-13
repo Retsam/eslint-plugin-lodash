@@ -43,7 +43,7 @@ function isChainable(node, version) {
  * @returns {boolean}
  */
 function isImplicitChainStart(node, pragma, context) {
-    return node.callee.name === pragma || isImportedLodash(node.callee, context)
+    return (pragma && node.callee.name === pragma) || isImportedLodash(node.callee, context)
 }
 
 /**
