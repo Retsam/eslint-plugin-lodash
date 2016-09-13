@@ -19,7 +19,10 @@ ruleTester.run('no-commit', rule, {
         '_(a).filter(f).forEach(g);'
     ],
     invalid: [{
-        code: '_(arr).map(f).commit();',
-        errors
+        code: 'import _ from "lodash"; _(arr).map(f).commit();',
+        errors,
+        parserOptions: {
+            sourceType: 'module'
+        }
     }]
 })
