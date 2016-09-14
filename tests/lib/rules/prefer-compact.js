@@ -25,5 +25,10 @@ ruleTester.run('prefer-compact', rule, {
         '_.filter(arr, function(x) { return !!x})',
         '_.filter(arr, function(x) {return Boolean(x) })',
         '_.filter(arr, x => !!x)'
-    ].map(toErrorObject).map(withDefaultPragma)
+    ].map(withDefaultPragma).concat([{
+        code: 'import f from "lodash/filter"; f(arr, Boolean)',
+        parserOptions: {
+            sourceType: 'module'
+        }
+    }]).map(toErrorObject)
 })

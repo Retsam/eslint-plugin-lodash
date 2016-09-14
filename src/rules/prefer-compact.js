@@ -12,9 +12,9 @@
 
 module.exports = {
     create(context) {
-        const {getLodashMethodVisitor, isCallToMethod} = require('../util/lodashUtil')
+        const {getLodashMethodVisitor} = require('../util/lodashUtil')
         const {isNegationExpression, isIdentifierOfParam, getValueReturnedInFirstLine, getFirstParamName} = require('../util/astUtil')
-        const settings = require('../util/settingsUtil').getSettings(context)
+        const {isAliasOfMethod} = require('../util/methodDataUtil')
         function isDoubleNegationOfParam(exp, paramName) {
             return isNegationExpression(exp) && isNegationExpression(exp.argument) && isIdentifierOfParam(exp.argument.argument, paramName)
         }
@@ -32,8 +32,8 @@ module.exports = {
         }
 
         return {
-            CallExpression: getLodashMethodVisitor(context, (node, iteratee) => {
-                if (isCallToMethod(node, settings.version, 'filter') && isBooleanCastingFunction(iteratee)) {
+            CallExpression: getLodashMethodVisitor(context, (node, iteratee, {method, version}) => {
+                if (isAliasOfMethod(version, 'filter', method) && isBooleanCastingFunction(iteratee)) {
                     context.report(node, 'Prefer _.compact over filtering of Boolean casting')
                 }
             })
