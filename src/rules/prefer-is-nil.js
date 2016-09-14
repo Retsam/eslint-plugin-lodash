@@ -13,7 +13,7 @@
 module.exports = {
     create(context) {
         const {isNegationExpression, isEquivalentExp} = require('../util/astUtil')
-        const {isLodashCallToMethod, getImportedLodashMethod} = require('../util/lodashUtil')
+        const {isCallToLodashMethod, getImportedLodashMethod} = require('../util/lodashUtil')
         const {isAliasOfMethod} = require('../util/methodDataUtil')
         const settings = require('../util/settingsUtil').getSettings(context)
         const _ = require('lodash')
@@ -28,14 +28,9 @@ module.exports = {
             }
         }
 
-        function isTypecheckLodashCall(node, typecheck) {
-            return isLodashCallToMethod(node, settings, typecheck) ||
-                isAliasOfMethod(settings.version, typecheck, getImportedLodashMethod(context, node))
-        }
-
         function getLodashTypeCheckedBy(typecheck) {
             return function (node) {
-                return isTypecheckLodashCall(node, typecheck) && node.arguments[0]
+                return isCallToLodashMethod(node, typecheck, context) && node.arguments[0]
             }
         }
 
