@@ -50,5 +50,13 @@ ruleTester.run('path-style', rule, {
         code: "var t = _.get(x, ['a', 'b']);",
         errors: [{message: 'Use a string for paths', column: 18}],
         options: ['string']
-    }].map(withDefaultPragma)
+    }].map(withDefaultPragma).concat([{
+        code: 'import g from "lodash/get"; var t = g(x, "a")',
+        errors: [{message: 'Use an array for paths'}],
+        options: ['array'],
+        parserOptions: {
+            sourceType: 'module'
+        }
+    }
+    ])
 })

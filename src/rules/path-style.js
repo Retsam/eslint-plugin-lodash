@@ -18,8 +18,8 @@ module.exports = {
     },
 
     create(context) {
-        const {isCallToMethod, isLodashCall, getLodashMethodVisitor} = require('../util/lodashUtil')
-        const settings = require('../util/settingsUtil').getSettings(context)
+        const {getLodashMethodVisitor} = require('../util/lodashUtil')
+        const {isAliasOfMethod} = require('../util/methodDataUtil')
         const objectPathMethods = {
             regular: {methods: ['get', 'has', 'hasIn', 'set', 'unset', 'invoke'], index: 1},
             higherOrder: {methods: ['property', 'matchesProperty'], index: 0}
@@ -27,15 +27,15 @@ module.exports = {
         const _ = require('lodash')
 
 
-        function getIndexByMethodName(node) {
-            return _.chain(objectPathMethods).find(type => type.methods.some(isCallToMethod.bind(null, node, settings.version)))
-            .get('index', -1)
-            .value()
+        function getIndexByMethodName(method, version) {
+            const isAliasOfSuspect = m => isAliasOfMethod(version, m, method)
+            const pathMethodGroup = _.find(objectPathMethods, type => _.some(type.methods, isAliasOfSuspect))
+            return pathMethodGroup ? pathMethodGroup.index : -1
         }
 
-        function getPropertyPathNode(node) {
-            const index = getIndexByMethodName(node)
-            return node.arguments[isLodashCall(node, settings.pragma) ? index : index - 1]
+        function getPropertyPathNode(node, method, version, callType) {
+            const index = getIndexByMethodName(method, version)
+            return node.arguments[callType === 'chained' ? index - 1: index]
         }
 
         function isLiteralComplexPath(node) {
@@ -67,8 +67,8 @@ module.exports = {
 
 
         return {
-            CallExpression: getLodashMethodVisitor(context, node => {
-                const propertyPathNode = getPropertyPathNode(node)
+            CallExpression: getLodashMethodVisitor(context, (node, iteratee, {method, version, callType}) => {
+                const propertyPathNode = getPropertyPathNode(node, method, version, callType)
                 if (propertyPathNode) {
                     reportIfViolates[context.options[0] || 'string'](propertyPathNode)
                 }
