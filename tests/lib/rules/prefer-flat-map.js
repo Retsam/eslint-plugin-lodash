@@ -22,5 +22,10 @@ ruleTester.run('prefer-flat-map', rule, {
     invalid: [
         '_(a).map(f).flatten().value',
         't = _.flatten(_.map(a, f));'
-    ].map(toErrorObject).map(withDefaultPragma)
+    ].map(withDefaultPragma).concat([{
+        code: 'import f from "lodash/flatten"; import m from "lodash/map"; f(m(x, g))',
+        parserOptions: {
+            sourceType: 'module'
+        }
+    }]).map(toErrorObject)
 })

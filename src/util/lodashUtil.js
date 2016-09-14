@@ -271,7 +271,8 @@ module.exports = {
     getLodashMethodVisitor,
     methodSupportsShorthand,
     getShorthandVisitor,
-    isSideEffectIterationMethod
+    isSideEffectIterationMethod,
+    getImportedLodashMethod
 }
 
 /**
