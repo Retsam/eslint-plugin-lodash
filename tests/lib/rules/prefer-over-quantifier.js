@@ -43,5 +43,11 @@ ruleTester.run('prefer-over-quantifier', rule, {
     }, {
         code: 'var t = _.filter(a, x => f(x) || g(x) || h(x))',
         errors: errors.some
-    }].map(withDefaultPragma)
+    }].map(withDefaultPragma).concat([{
+        code: 'import f from "lodash/filter"; var t = f(a, x => g(x) || h(x))',
+        errors: errors.some,
+        parserOptions: {
+            sourceType: 'module'
+        }
+    }])
 })
