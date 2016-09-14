@@ -194,7 +194,6 @@ function getLodashMethodVisitor(context, reporter) {
                 node = node.parent.parent
             }
         } else if (isLodashCall(node, pragma, context)) {
-
             const method = astUtil.getMethodName(node)
             iterateeIndex = methodDataUtil.getIterateeIndex(version, method)
             reporter(node, node.arguments[iterateeIndex], {callType: 'method', method, version})
