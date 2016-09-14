@@ -2,6 +2,7 @@
 const _ = require('lodash')
 const methodDataUtil = require('./methodDataUtil')
 const astUtil = require('./astUtil')
+const settingsUtil = require('./settingsUtil')
 
 function getImportedName(def) {
     if (def && def.type === 'ImportBinding' && def.parent.type === 'ImportDeclaration') {
@@ -254,6 +255,15 @@ function isSideEffectIterationMethod(node, version) {
     return _.includes(methodDataUtil.getSideEffectIterationMethods(version), astUtil.getMethodName(node))
 }
 
+function isCallToLodashMethod(node, method, context) {
+    if (!node) {
+        return false
+    }
+    const settings = settingsUtil.getSettings(context)
+    return isLodashCallToMethod(node, settings, method) ||
+        methodDataUtil.isAliasOfMethod(settings.version, method, getImportedLodashMethod(context, node))
+}
+
 module.exports = {
     isLodashCall,
     isLodashChainStart,
@@ -272,7 +282,8 @@ module.exports = {
     methodSupportsShorthand,
     getShorthandVisitor,
     isSideEffectIterationMethod,
-    getImportedLodashMethod
+    getImportedLodashMethod,
+    isCallToLodashMethod
 }
 
 /**
