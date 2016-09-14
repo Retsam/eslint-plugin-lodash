@@ -25,13 +25,23 @@ ruleTester.run('prefer-times', rule, {
         'var x = _.map(a, ({x}) => x);',
         'var x = _.map(a, ({f: x}) => x);',
         'var x = _.map(a, ({f: {x}}) => x);',
-        '_.map(a, x => _.map(b, y => x.f(y)))'
+        '_.map(a, x => _.map(b, y => x.f(y)))',
+        '_.map(arr, function(a, c = 1) {return b})',
     ].map(withDefaultPragma),
     invalid: [
         '_(arr).map(function(){return g}).value()',
         '_.map(arr, function() {return Math.random()});',
         '_(arr).map(() => a.push(f()))',
-        '_.map(arr, function(a, c = 1) {return b})',
         '_(arr).map(() => a.push(f()))'
-    ].map(toErrorObject).map(withDefaultPragma)
+    ].map(withDefaultPragma).concat([{
+        parserOptions: {
+            sourceType: 'module'
+        },
+        code:'import _ from "lodash"; var ones = _.map(x, () => 1);'
+    }, {
+        parserOptions: {
+            sourceType: 'module'
+        },
+        code:'import f from "lodash/map"; var ones = f(x, () => 1);'
+    }]).map(toErrorObject)
 })
