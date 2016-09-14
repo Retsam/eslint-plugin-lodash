@@ -25,5 +25,10 @@ ruleTester.run('prefer-invoke-map', rule, {
         '_.map(a, function(x) {return x.f()});',
         '_(a).filter(f).map(function(x) { return x.split(" ")})',
         '_.map(arr, x => x.f())'
-    ].map(toErrorObject).map(withDefaultPragma)
+    ].map(withDefaultPragma).concat([{
+        code: 'import m from "lodash/map"; m(a, x => x.f())',
+        parserOptions: {
+            sourceType: 'module'
+        }
+    }]).map(toErrorObject)
 })
