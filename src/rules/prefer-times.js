@@ -16,7 +16,7 @@ module.exports = {
         const {isAliasOfMethod} = require('../util/methodDataUtil')
         const get = require('lodash/get')
         return {
-            CallExpression:  getLodashMethodVisitor(context, function (node, iteratee, {method, version}) {
+            CallExpression:  getLodashMethodVisitor(context, (node, iteratee, {method, version}) => {
                 if (isAliasOfMethod(version, 'map', method) && get(iteratee, 'params.length') === 0) {
                     context.report(node, 'Prefer _.times over _.map without using arguments')
                 }
