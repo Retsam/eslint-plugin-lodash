@@ -1,4 +1,4 @@
-'use strict'
+ 'use strict'
 
 // ------------------------------------------------------------------------------
 // Requirements
@@ -31,6 +31,12 @@ ruleTester.run('collection-method-value', rule, {
     ].map(withDefaultPragma).map(fromMessage('Do not use value returned from _.forEach')).concat([
         '_.map(arr, f)',
         '_(arr).filter(g).map(f).value()',
-        '_.chain(arr).find(p).map(f).value()'
+        '_.chain(arr).find(p).map(f).value()',
+        {
+            code:'import f from "lodash/map"; f(x, g)',
+            parserOptions: {
+                sourceType: 'module'
+            }
+        }
     ].map(withDefaultPragma).map(fromMessage('Use value returned from _.map')))
 })
