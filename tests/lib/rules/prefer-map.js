@@ -24,5 +24,10 @@ ruleTester.run('prefer-map', rule, {
         '_(arr).forEach(function(x) { a.push(x)})',
         '_(arr).forEach(function(x) { a.push(f(x))})',
         '_(arr).forEach(x => a.push(f(x)))'
-    ].map(toErrorObject).map(withDefaultPragma)
+    ].map(withDefaultPragma).concat([{
+        code: 'import fe from "lodash/forEach"; fe(arr, x => {a.push(x)})',
+        parserOptions: {
+            sourceType: 'module'
+        }
+    }]).map(toErrorObject)
 })
