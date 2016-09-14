@@ -92,7 +92,7 @@ const isReturnStatement = _.matchesProperty('type', 'ReturnStatement')
  * @returns {boolean}
  */
 function hasOnlyOneStatement(func) {
-    return func.type === 'ArrowFunctionExpression' ? !_.get(func, 'body.body') : _.get(func, 'body.body.length') === 1
+    return !_.get(func, 'body.body') || _.get(func, 'body.body.length') === 1
 }
 
 /**
