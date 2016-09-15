@@ -19,7 +19,8 @@ ruleTester.run('prefer-includes', rule, {
         'if (_.includes(a, b)) {}',
         'x = _.indexOf(a, b) !== 2',
         'x = a.indexOf(b) === 2',
-        {code: 'if (a.indexOf(b) !== -1) {}', options: [{includeNative: false}]}
+        {code: 'if (a.indexOf(b) !== -1) {}', options: [{includeNative: false}]},
+        {code: 'if (x !== 1) {}', options: [{includeNative: true}]}
     ].map(withDefaultPragma),
     invalid: [
         'x = _.indexOf(a, b) === -1',

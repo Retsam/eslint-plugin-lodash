@@ -17,7 +17,7 @@ ruleTester.run('no-extra-args', rule, {
         'obj.constant(foo => _(foo).reduce(bar, []));',
         'var x = _.uniq(arr);',
         'var x = _.assign(a, b, c, d, e);'
-    ],
+    ].map(withDefaultPragma),
     invalid: [{
         code: 'var x = _.uniq(arr, "prop");',
         errors: [{message: 'Too many arguments passed to `uniq` (expected 1).'}]
