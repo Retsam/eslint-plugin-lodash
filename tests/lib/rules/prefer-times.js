@@ -43,5 +43,10 @@ ruleTester.run('prefer-times', rule, {
             sourceType: 'module'
         },
         code:'import f from "lodash/map"; var ones = f(x, () => 1);'
+    }, {
+        code: 'import {map} from "lodash"; var ones = map(arr, () => 1)',
+        parserOptions: {
+            sourceType: 'module'
+        }
     }]).map(toErrorObject)
 })

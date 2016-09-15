@@ -13,7 +13,7 @@ function getImportedName(def) {
 function isImportedLodash(node, context) {
     if (context) {
         const def = getDefinition(context.getScope(), node)
-        return getImportedName(def) === 'lodash'
+        return getImportedName(def) === 'lodash' && def.node.type !== 'ImportSpecifier'
     }
 }
 
@@ -245,16 +245,6 @@ function isLodashCallToMethod(node, settings, method) {
     return isLodashCall(node, settings.pragma) && isCallToMethod(node, settings.version, method)
 }
 
-/**
- * Returns whether the node is a side effect iteration method call (e.g forEach)
- * @param node
- * @param version
- * @returns {boolean}
- */
-function isSideEffectIterationMethod(node, version) {
-    return _.includes(methodDataUtil.getSideEffectIterationMethods(version), astUtil.getMethodName(node))
-}
-
 function isCallToLodashMethod(node, method, context) {
     if (!node) {
         return false
@@ -281,7 +271,6 @@ module.exports = {
     getLodashMethodVisitor,
     methodSupportsShorthand,
     getShorthandVisitor,
-    isSideEffectIterationMethod,
     getImportedLodashMethod,
     isCallToLodashMethod
 }
