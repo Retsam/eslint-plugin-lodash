@@ -34,19 +34,23 @@ ruleTester.run('prefer-times', rule, {
         '_(arr).map(() => a.push(f()))',
         '_(arr).map(() => a.push(f()))'
     ].map(withDefaultPragma).concat([{
-        parserOptions: {
-            sourceType: 'module'
+            parserOptions: {
+                sourceType: 'module'
+            },
+            code:'import _ from "lodash"; var ones = _.map(x, () => 1);'
+        }, {
+            parserOptions: {
+                sourceType: 'module'
+            },
+            code:'import f from "lodash/map"; var ones = f(x, () => 1);'
+        }, {
+            code: 'import {map} from "lodash"; var ones = map(arr, () => 1)',
+            parserOptions: {
+                sourceType: 'module'
+            }
         },
-        code:'import _ from "lodash"; var ones = _.map(x, () => 1);'
-    }, {
-        parserOptions: {
-            sourceType: 'module'
-        },
-        code:'import f from "lodash/map"; var ones = f(x, () => 1);'
-    }, {
-        code: 'import {map} from "lodash"; var ones = map(arr, () => 1)',
-        parserOptions: {
-            sourceType: 'module'
-        }
-    }]).map(toErrorObject)
+        'var map = require("lodash/map"); var ones = map(arr, () => 1)',
+        'var {map: m} = require("lodash"); var ones = m(arr, () => 1)',
+        'var _ = require("lodash"); var ones = _.map(arr, () => 1)'
+    ]).map(toErrorObject)
 })

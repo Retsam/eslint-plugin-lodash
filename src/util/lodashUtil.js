@@ -4,16 +4,27 @@ const methodDataUtil = require('./methodDataUtil')
 const astUtil = require('./astUtil')
 const settingsUtil = require('./settingsUtil')
 
+function getNameFromRequire(init) {
+    if (init && init.arguments && init.arguments.length === 1 && init.arguments[0].type === 'Literal') {
+        return init.arguments[0].value
+    }
+}
+
 function getImportedName(def) {
-    if (def && def.type === 'ImportBinding' && def.parent.type === 'ImportDeclaration') {
-        return _.get(def, 'parent.source.value')
+    if (def) {
+        if (def.type === 'ImportBinding' && def.parent.type === 'ImportDeclaration') {
+            return _.get(def, 'parent.source.value')
+        }
+        if (def.type === 'Variable') {
+            return getNameFromRequire(def.node.init)
+        }
     }
 }
 
 function isImportedLodash(node, context) {
     if (context) {
         const def = getDefinition(context.getScope(), node)
-        return getImportedName(def) === 'lodash' && def.node.type !== 'ImportSpecifier'
+        return getImportedName(def) === 'lodash' && _.get(def, 'node.id.type') !== 'ObjectPattern' && def.node.type !== 'ImportSpecifier'
     }
 }
 
@@ -157,6 +168,14 @@ function getDefinition(scope, node) {
     return _.get(ref, 'resolved.defs[0]')
 }
 
+function getImportedNameFromObjectPattern(def) {
+    if (def.type === 'ImportBinding') {
+        return def.node.imported.name
+    }
+    const declarationProp = _.find(def.node.id.properties, prop => prop.value.name === def.name.name)
+    return declarationProp && declarationProp.key.name
+}
+
 function getImportedLodashMethod(context, node) {
     const scope = context && context.getScope()
     if (!astUtil.isMethodCall(node) && scope) {
@@ -165,7 +184,7 @@ function getImportedLodashMethod(context, node) {
             const imported = getImportedName(def)
             if (imported) {
                 if (imported === 'lodash') {
-                    return def.node.imported.name
+                    return getImportedNameFromObjectPattern(def)
                 } else {
                     const match = /^lodash\/(\w+)/.exec(imported)
                     return match && match[1]
