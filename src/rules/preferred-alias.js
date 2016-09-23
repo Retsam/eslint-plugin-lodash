@@ -31,7 +31,7 @@ module.exports = {
         }, {})
 
         return {
-            CallExpression: getLodashMethodVisitor(settings, node => {
+            CallExpression: getLodashMethodVisitor(context, node => {
                 const methodName = getMethodName(node)
                 if (_.has(expandedAliases, methodName)) {
                     context.report({

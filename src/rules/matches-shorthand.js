@@ -31,7 +31,7 @@ module.exports = {
 
     create(context) {
         const matches = require('lodash/matches')
-        const {isLodashCallToMethod, getShorthandVisitor} = require('../util/lodashUtil')
+        const {isCallToLodashMethod, getShorthandVisitor} = require('../util/lodashUtil')
         const {isEqEqEq, isMemberExpOf, isEqEqEqToMemberOf, getValueReturnedInFirstStatement, getFirstParamName} = require('../util/astUtil')
         const settingsUtil = require('../util/settingsUtil')
         const settings = settingsUtil.getSettings(context)
@@ -71,7 +71,7 @@ module.exports = {
         }
 
         function canUseShorthand(iteratee) {
-            return isFunctionDeclarationThatCanUseShorthand(iteratee) || isLodashCallToMethod(iteratee, settings, 'matches')
+            return isFunctionDeclarationThatCanUseShorthand(iteratee) || isCallToLodashMethod(iteratee, 'matches', context)
         }
 
         function usesShorthand(node, iteratee) {
@@ -80,7 +80,7 @@ module.exports = {
 
 
         return {
-            CallExpression: getShorthandVisitor(context, settings, {
+            CallExpression: getShorthandVisitor(context, {
                 canUseShorthand,
                 usesShorthand
             }, {
