@@ -12,19 +12,13 @@ module.exports = {
         schema: [{
             type: 'object',
             properties: {
-                except: {
+                methods: {
                     type: 'array',
                     items: {
                         type: 'string'
                     }
                 },
-                ignoreObjects: {
-                    type: 'array',
-                    items: {
-                        type: 'string'
-                    }
-                },
-                ignorePatterns: {
+                objects: {
                     type: 'array',
                     items: {
                         type: 'string'
@@ -36,32 +30,12 @@ module.exports = {
 
     create(context) {
 
-        const {isLodashCall, isNativeCollectionMethodCall, isLodashChainStart, isChainBreaker, isChainable, isExplicitChainStart} = require('../util/lodashUtil')
-        const {getMethodName, getCaller, isMethodCall} = require('../util/astUtil')
-        const {pragma, version} = require('../util/settingsUtil').getSettings(context)
+        const {isNativeCollectionMethodCall, getLodashMethodVisitor} = require('../util/lodashUtil')
+        const {getMethodName, getCaller} = require('../util/astUtil')
         const [get, includes, cond, matches, property, some, map] = ['get', 'includes', 'cond', 'matches', 'property', 'some', 'map'].map(m => require(`lodash/${m}`))
-        const REPORT_MESSAGE = 'Prefer \'_.{{method}}\' over the native function.'
-        const exceptions = get(context, ['options', 0, 'except'], [])
+        const ignoredMethods = get(context, ['options', 0, 'ignoreMethods'], [])
         const ignoredObjects = get(context, ['options', 0, 'ignoreObjects'], [])
-        const ignoredPatterns = map(get(context, ['options', 0, 'ignorePatterns'], []), pattern => new RegExp(pattern))
-
-        function isLodashWrapper(node) {
-            let currentNode = node
-            let chainable = true
-            while (isMethodCall(currentNode)) {
-                if (isLodashChainStart(currentNode, pragma, context)) {
-                    return true
-                }
-                if (isChainBreaker(currentNode, version)) {
-                    return false
-                }
-                if (!isChainable(currentNode, version)) {
-                    chainable = false
-                }
-                currentNode = getCaller(currentNode)
-            }
-            return chainable ? isLodashChainStart(currentNode, pragma, context) : isExplicitChainStart(currentNode, pragma, context)
-        }
+        const usingLodash = new Set()
 
         function isNonNullObjectCreate(callerName, methodName, arg) {
             return callerName === 'Object' && methodName === 'create' && get(arg, 'value') !== null
@@ -77,10 +51,6 @@ module.exports = {
             return (callerName in staticMethods) && includes(staticMethods[callerName], methodName) || isNonNullObjectCreate(callerName, methodName, node.arguments[0])
         }
 
-        function isUsingLodash(node) {
-            return isLodashCall(node, pragma) || isLodashWrapper(getCaller(node), pragma, version)
-        }
-
         function canUseLodash(node) {
             return isNativeCollectionMethodCall(node) || isStaticNativeMethodCall(node)
         }
@@ -90,23 +60,21 @@ module.exports = {
             [property('type'), node => context.getSourceCode().getText(node)]
         ])
 
-        function isIgnoredObject(node) {
-            const callerName = getTextOfNode(getCaller(node))
-            if (!callerName) { return false }
-
-            if (includes(ignoredObjects, callerName)) { return true }
-
-            return some(ignoredPatterns, pattern => callerName.match(pattern))
+        function someMatch(patterns, str) {
+            return str && some(patterns, pattern => str.match(pattern))
         }
 
-        function isRuleException(node) {
-            return includes(exceptions, getMethodName(node))
+        function shouldIgnore(node) {
+            return someMatch(ignoredMethods, getMethodName(node)) || someMatch(ignoredObjects, getTextOfNode(getCaller(node)))
         }
 
         return {
-            CallExpression(node) {
-                if (!isRuleException(node) && !isIgnoredObject(node) && canUseLodash(node) && !isUsingLodash(node)) {
-                    context.report(node, REPORT_MESSAGE, {method: getMethodName(node)})
+            CallExpression: getLodashMethodVisitor(context, node => {
+                usingLodash.add(node)
+            }),
+            'CallExpression:exit'(node) {
+                if (!usingLodash.has(node) && !shouldIgnore(node) && canUseLodash(node)) {
+                    context.report(node, `Prefer '_.${getMethodName(node)}' over the native function.`)
                 }
             }
         }
