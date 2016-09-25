@@ -36,14 +36,32 @@ module.exports = {
 
     create(context) {
 
-        const {isLodashCall, isLodashWrapper, isNativeCollectionMethodCall} = require('../util/lodashUtil')
-        const {getMethodName, getCaller} = require('../util/astUtil')
-        const settings = require('../util/settingsUtil').getSettings(context)
+        const {isLodashCall, isNativeCollectionMethodCall, isLodashChainStart, isChainBreaker, isChainable, isExplicitChainStart} = require('../util/lodashUtil')
+        const {getMethodName, getCaller, isMethodCall} = require('../util/astUtil')
+        const {pragma, version} = require('../util/settingsUtil').getSettings(context)
         const [get, includes, cond, matches, property, some, map] = ['get', 'includes', 'cond', 'matches', 'property', 'some', 'map'].map(m => require(`lodash/${m}`))
         const REPORT_MESSAGE = 'Prefer \'_.{{method}}\' over the native function.'
         const exceptions = get(context, ['options', 0, 'except'], [])
         const ignoredObjects = get(context, ['options', 0, 'ignoreObjects'], [])
         const ignoredPatterns = map(get(context, ['options', 0, 'ignorePatterns'], []), pattern => new RegExp(pattern))
+
+        function isLodashWrapper(node) {
+            let currentNode = node
+            let chainable = true
+            while (isMethodCall(currentNode)) {
+                if (isLodashChainStart(currentNode, pragma, context)) {
+                    return true
+                }
+                if (isChainBreaker(currentNode, version)) {
+                    return false
+                }
+                if (!isChainable(currentNode, version)) {
+                    chainable = false
+                }
+                currentNode = getCaller(currentNode)
+            }
+            return chainable ? isLodashChainStart(currentNode, pragma, context) : isExplicitChainStart(currentNode, pragma, context)
+        }
 
         function isNonNullObjectCreate(callerName, methodName, arg) {
             return callerName === 'Object' && methodName === 'create' && get(arg, 'value') !== null
@@ -60,7 +78,7 @@ module.exports = {
         }
 
         function isUsingLodash(node) {
-            return isLodashCall(node, settings.pragma) || isLodashWrapper(getCaller(node), settings.pragma, settings.version)
+            return isLodashCall(node, pragma) || isLodashWrapper(getCaller(node), pragma, version)
         }
 
         function canUseLodash(node) {
@@ -78,9 +96,7 @@ module.exports = {
 
             if (includes(ignoredObjects, callerName)) { return true }
 
-            if (some(ignoredPatterns, pattern => callerName.match(pattern))) { return true }
-
-            return false
+            return some(ignoredPatterns, pattern => callerName.match(pattern))
         }
 
         function isRuleException(node) {

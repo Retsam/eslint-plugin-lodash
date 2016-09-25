@@ -40,5 +40,11 @@ ruleTester.run('collection-return', rule, {
     }, {
         code: '_.map(arr, function x(a) {arr2.push(a)})',
         errors: [{message: 'Do not use _.map without returning a value'}]
-    }].map(withDefaultPragma)
+    }].map(withDefaultPragma).concat([{
+        code: 'import m from "lodash/map"; m(arr, x => {})',
+        errors: [{message: 'Do not use _.map without returning a value'}],
+        parserOptions: {
+            sourceType: 'module'
+        }
+    }])
 })

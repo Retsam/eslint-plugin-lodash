@@ -89,31 +89,6 @@ function isChainBreaker(node, version) {
 }
 
 /**
- * Returns whether the node is in a lodash chain
- * @param {Object} node
- * @param {string} pragma
- * @param {number} version
- * @returns {*}
- */
-function isLodashWrapper(node, pragma, version) {
-    let currentNode = node
-    let chainable = true
-    while (astUtil.isMethodCall(currentNode)) {
-        if (isLodashChainStart(currentNode, pragma)) {
-            return true
-        }
-        if (isChainBreaker(currentNode, version)) {
-            return false
-        }
-        if (!isChainable(currentNode, version)) {
-            chainable = false
-        }
-        currentNode = astUtil.getCaller(currentNode)
-    }
-    return chainable ? isLodashChainStart(currentNode, pragma) : isExplicitChainStart(currentNode, pragma)
-}
-
-/**
  * Returns whether the node is a call to the specified method or one of its aliases in the version
  * @param {Object} node
  * @param {number} version
@@ -151,16 +126,6 @@ function getIsTypeMethod(name) {
  */
 function isNativeCollectionMethodCall(node) {
     return _.includes(['every', 'fill', 'filter', 'find', 'findIndex', 'forEach', 'includes', 'map', 'reduce', 'reduceRight', 'some'], astUtil.getMethodName(node))
-}
-
-/**
- * Returns whether or not the node is a call to a lodash collection method in the specified version
- * @param {Object} node
- * @param {number} version
- * @returns {boolean}
- */
-function isLodashCollectionMethod(node, version) {
-    return node.type === 'CallExpression' && _.includes(methodDataUtil.getCollectionMethods(version), astUtil.getMethodName(node))
 }
 
 function getDefinition(scope, node) {
@@ -277,13 +242,10 @@ module.exports = {
     isLodashCall,
     isLodashChainStart,
     isChainable,
-    isLodashWrapper,
     isChainBreaker,
     isCallToMethod,
-    isLodashCallToMethod,
     isLodashWrapperMethod,
     getIsTypeMethod,
-    isLodashCollectionMethod,
     isNativeCollectionMethodCall,
     isImplicitChainStart,
     isExplicitChainStart,
