@@ -17,10 +17,10 @@ module.exports = {
 
     create(context) {
         const includes = require('lodash/includes')
-        const {getLodashMethodVisitor} = require('../util/lodashUtil')
+        const {getLodashMethodVisitors} = require('../util/lodashUtil')
         const {version} = require('../util/settingsUtil').getSettings(context)
         const {getMainAlias} = require('../util/methodDataUtil')
-        
+
         const direction = context.options[0] || 'flow'
         const mainDirectionMethod = getMainAlias(version, direction)
 
@@ -31,12 +31,10 @@ module.exports = {
             }
         }
 
-        return {
-            CallExpression: getLodashMethodVisitor(context, (node, iteratee, {method}) => {
-                if (isOtherDirection(method)) {
-                    context.report(node, `Use _.${direction} for composition`)
-                }
-            })
-        }
+        return getLodashMethodVisitors(context, (node, iteratee, {method}) => {
+            if (isOtherDirection(method)) {
+                context.report(node, `Use _.${direction} for composition`)
+            }
+        })
     }
 }

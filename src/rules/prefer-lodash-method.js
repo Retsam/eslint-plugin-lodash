@@ -30,7 +30,8 @@ module.exports = {
 
     create(context) {
 
-        const {isNativeCollectionMethodCall, getLodashMethodVisitor} = require('../util/lodashUtil')
+        const {isNativeCollectionMethodCall, getLodashMethodCallExpVisitor, getLodashImportVisitors} = require('../util/lodashUtil')
+        const {combineVisitorObjects} = require('../util/ruleUtil')
         const {getMethodName, getCaller} = require('../util/astUtil')
         const [get, includes, cond, matches, property, some, map] = ['get', 'includes', 'cond', 'matches', 'property', 'some', 'map'].map(m => require(`lodash/${m}`))
         const ignoredMethods = get(context, ['options', 0, 'ignoreMethods'], [])
@@ -68,8 +69,8 @@ module.exports = {
             return someMatch(ignoredMethods, getMethodName(node)) || someMatch(ignoredObjects, getTextOfNode(getCaller(node)))
         }
 
-        return {
-            CallExpression: getLodashMethodVisitor(context, node => {
+        return combineVisitorObjects({
+            CallExpression: getLodashMethodCallExpVisitor(context, node => {
                 usingLodash.add(node)
             }),
             'CallExpression:exit'(node) {
@@ -77,6 +78,6 @@ module.exports = {
                     context.report(node, `Prefer '_.${getMethodName(node)}' over the native function.`)
                 }
             }
-        }
+        }, getLodashImportVisitors(context))
     }
 }

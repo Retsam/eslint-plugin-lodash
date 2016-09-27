@@ -12,7 +12,7 @@
 
 module.exports = {
     create(context) {
-        const {getLodashMethodVisitor} = require('../util/lodashUtil')
+        const {getLodashMethodVisitors} = require('../util/lodashUtil')
         const {getValueReturnedInFirstStatement, getFirstParamName, isObjectOfMethodCall, getMethodName} = require('../util/astUtil')
         const {isAliasOfMethod} = require('../util/methodDataUtil')
         const conditionMethods = ['filter', 'reject', 'pickBy', 'omitBy', 'findIndex', 'findLastIndex', 'find', 'findLast', 'findKey', 'findLastKey']
@@ -66,13 +66,11 @@ module.exports = {
             }
         }
 
-        return {
-            CallExpression: getLodashMethodVisitor(context, (node, iteratee, {method, version, callType}) => {
-                if (isCallToConditionMethod(method, version)) {
-                    reportIfConnectiveOfParamInvocations(iteratee)
-                    reportIfDoubleFilterLiteral(callType, iteratee, node, version)
-                }
-            })
-        }
+        return getLodashMethodVisitors(context, (node, iteratee, {method, version, callType}) => {
+            if (isCallToConditionMethod(method, version)) {
+                reportIfConnectiveOfParamInvocations(iteratee)
+                reportIfDoubleFilterLiteral(callType, iteratee, node, version)
+            }
+        })
     }
 }

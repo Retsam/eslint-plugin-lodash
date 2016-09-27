@@ -12,7 +12,7 @@
 
 module.exports = {
     create(context) {
-        const {getLodashMethodVisitor, isCallToMethod, isCallToLodashMethod, getImportedLodashMethod} = require('../util/lodashUtil')
+        const {getLodashMethodVisitors, isCallToMethod, isCallToLodashMethod} = require('../util/lodashUtil')
         const {getCaller} = require('../util/astUtil')
         const {isAliasOfMethod} = require('../util/methodDataUtil')
 
@@ -20,14 +20,12 @@ module.exports = {
             return callType === 'chained' && isCallToMethod(getCaller(node), version, 'map')
         }
 
-        return {
-            CallExpression: getLodashMethodVisitor(context, (node, iteratee, {method, version, callType}) => {
-                if (isAliasOfMethod(version, 'flatten', method) &&
-                    (isChainedMapFlatten(callType, node, version) ||
-                    isCallToLodashMethod(node.arguments[0], 'map', context))) {
-                    context.report(node, 'Prefer _.flatMap over consecutive map and flatten.')
-                }
-            })
-        }
+        return getLodashMethodVisitors(context, (node, iteratee, {method, version, callType}) => {
+            if (isAliasOfMethod(version, 'flatten', method) &&
+                (isChainedMapFlatten(callType, node, version) ||
+                isCallToLodashMethod(node.arguments[0], 'map', context))) {
+                context.report(node, 'Prefer _.flatMap over consecutive map and flatten.')
+            }
+        })
     }
 }

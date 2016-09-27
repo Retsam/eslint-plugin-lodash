@@ -24,7 +24,7 @@ module.exports = {
     },
 
     create(context) {
-        const {isCallToLodashMethod, getShorthandVisitor} = require('../util/lodashUtil')
+        const {isCallToLodashMethod, getShorthandVisitors} = require('../util/lodashUtil')
         const {isEqEqEqToMemberOf, getValueReturnedInFirstStatement, getFirstParamName} = require('../util/astUtil')
         const {version} = require('../util/settingsUtil').getSettings(context)
         const onlyLiterals = context.options[1] && context.options[1].onlyLiterals
@@ -50,14 +50,12 @@ module.exports = {
             }
         }
 
-        return {
-            CallExpression: getShorthandVisitor(context, {
-                canUseShorthand,
-                usesShorthand: matchesPropertyChecks[version]
-            }, {
-                always: 'Prefer matches property syntax',
-                never: 'Do not use matches property syntax'
-            })
-        }
+        return getShorthandVisitors(context, {
+            canUseShorthand,
+            usesShorthand: matchesPropertyChecks[version]
+        }, {
+            always: 'Prefer matches property syntax',
+            never: 'Do not use matches property syntax'
+        })
     }
 }

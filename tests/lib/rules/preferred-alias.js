@@ -22,7 +22,7 @@ ruleTester.run('preferred-alias', rule, {
         'var x = _.map(y, function (i) { return i; });'
     ].map(withDefaultPragma),
     invalid: [
-        {code: '_.each(users, function (i) { i.f(); });', output: '_.forEach(users, function (i) { i.f(); });'},
+        '_.each(users, function (i) { i.f(); });',
         '_(users).each(function (i) { i.f(); });',
         '_(users).map(function (i) { return i; }).each(function (i) {});'
     ].map(toErrorObject).map(withDefaultPragma)

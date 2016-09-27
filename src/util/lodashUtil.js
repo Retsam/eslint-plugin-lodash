@@ -3,28 +3,67 @@ const _ = require('lodash')
 const methodDataUtil = require('./methodDataUtil')
 const astUtil = require('./astUtil')
 const settingsUtil = require('./settingsUtil')
+const contextsWithLodash = new WeakMap()
 
-function getNameFromRequire(init) {
-    if (init && init.arguments && init.arguments.length === 1 && init.arguments[0].type === 'Literal') {
+function getNameFromCjsRequire(init) {
+    if (_.get(init, 'callee.name') === 'require' && _.get(init, 'arguments.length') === 1 && init.arguments[0].type === 'Literal') {
         return init.arguments[0].value
     }
 }
 
-function getImportedName(def) {
-    if (def) {
-        if (def.type === 'ImportBinding' && def.parent.type === 'ImportDeclaration') {
-            return _.get(def, 'parent.source.value')
-        }
-        if (def.type === 'Variable') {
-            return getNameFromRequire(def.node.init)
+function getLodashImportVisitors(context) {
+    return {
+        ImportDeclaration({source, specifiers}) {
+            if (source.value === 'lodash') {
+                contextsWithLodash.set(context, _.reduce(specifiers, ({general, methods}, spec) => {
+                    switch (spec.type) {
+                        case 'ImportNamespaceSpecifier':
+                        case 'ImportDefaultSpecifier':
+                            return {general: _.assign(general, {[spec.local.name]: true}), methods}
+                        case 'ImportSpecifier':
+                            return {general, methods: _.assign(methods, {[spec.local.name]: spec.imported.name})}
+                    }
+                }, contextsWithLodash.get(context) || {}))
+            } else {
+                const match = /^lodash\/(\w+)/.exec(source.value)
+                if (match) {
+                    const {general, methods} = contextsWithLodash.get(context) || {}
+                    contextsWithLodash.set(context, {
+                        general,
+                        methods: _.assign(methods, {[_.get(specifiers, '[0].local.name')]: match[1]})
+                    })
+                }
+            }
+        },
+        VariableDeclarator({init, id}) {
+            const required = getNameFromCjsRequire(init)
+            if (required === 'lodash') {
+                if (id.type === 'Identifier') {
+                    const {general, methods} = contextsWithLodash.get(context) || {}
+                    contextsWithLodash.set(context, {general: _.assign(general, {[id.name]: true}, methods)})
+                } else if (id.type === 'ObjectPattern') {
+                    const allImports = contextsWithLodash.get(context) || {}
+                    const imports = _.reduce(id.properties, ({general, methods}, prop) => ({general, methods: _.assign(methods, {[prop.value.name]: prop.key.name})}), allImports)
+                    contextsWithLodash.set(context, imports)
+                }
+            } else if (required) {
+                const match = /^lodash\/(\w+)/.exec(required)
+                if (match) {
+                    const {general, methods} = contextsWithLodash.get(context) || {}
+                    contextsWithLodash.set(context, {
+                        general,
+                        methods: _.assign(methods, {[id.name]: match[1]})
+                    })
+                }
+            }
         }
     }
 }
 
 function isImportedLodash(node, context) {
-    if (context) {
-        const def = getDefinition(context.getScope(), node)
-        return getImportedName(def) === 'lodash' && _.get(def, 'node.id.type') !== 'ObjectPattern' && def.node.type !== 'ImportSpecifier'
+    if (context && node && node.type === 'Identifier') {
+        const contextData = contextsWithLodash.get(context)
+        return _.get(contextData, ['general', node.name])
     }
 }
 
@@ -128,34 +167,10 @@ function isNativeCollectionMethodCall(node) {
     return _.includes(['every', 'fill', 'filter', 'find', 'findIndex', 'forEach', 'includes', 'map', 'reduce', 'reduceRight', 'some'], astUtil.getMethodName(node))
 }
 
-function getDefinition(scope, node) {
-    const ref = _.find(scope.references, {identifier: node})
-    return _.get(ref, 'resolved.defs[0]')
-}
-
-function getImportedNameFromObjectPattern(def) {
-    if (def.type === 'ImportBinding') {
-        return def.node.imported.name
-    }
-    const declarationProp = _.find(def.node.id.properties, prop => prop.value.name === def.name.name)
-    return declarationProp && declarationProp.key.name
-}
-
 function getImportedLodashMethod(context, node) {
-    const scope = context && context.getScope()
-    if (!astUtil.isMethodCall(node) && scope) {
-        const def = getDefinition(scope, node.callee)
-        if (def) {
-            const imported = getImportedName(def)
-            if (imported) {
-                if (imported === 'lodash') {
-                    return getImportedNameFromObjectPattern(def)
-                } else {
-                    const match = /^lodash\/(\w+)/.exec(imported)
-                    return match && match[1]
-                }
-            }
-        }
+    const contextData = contextsWithLodash.get(context)
+    if (!astUtil.isMethodCall(node) && contextData && contextData.methods) {
+        return contextData.methods[node.callee.name]
     }
 }
 /**
@@ -164,9 +179,9 @@ function getImportedLodashMethod(context, node) {
  * @param {LodashReporter} reporter
  * @returns {NodeTypeVisitor}
  */
-function getLodashMethodVisitor(context, reporter) {
+function getLodashMethodCallExpVisitor(context, reporter) {
+    const {pragma, version} = require('./settingsUtil').getSettings(context)
     return function (node) {
-        const {pragma, version} = require('./settingsUtil').getSettings(context)
         let iterateeIndex
         if (isLodashChainStart(node, pragma, context)) {
             let prevNode = node
@@ -182,7 +197,7 @@ function getLodashMethodVisitor(context, reporter) {
             const method = astUtil.getMethodName(node)
             iterateeIndex = methodDataUtil.getIterateeIndex(version, method)
             reporter(node, node.arguments[iterateeIndex], {callType: 'method', method, version})
-        } else {
+        } else if (version !== 3) {
             const method = getImportedLodashMethod(context, node)
             if (method) {
                 iterateeIndex = methodDataUtil.getIterateeIndex(version, method)
@@ -202,16 +217,28 @@ function methodSupportsShorthand(version, method) {
     return _.includes(methodDataUtil.getShorthandMethods(version), method)
 }
 
-/**
- * Gets the context, settings, checks whether shorthand is used and can be used, and messages, and returns a visitor
- * @param {RuleContext} context
- * @param {LodashSettings} settings
- * @param {ShorthandChecks} checks
- * @param {ShorthandMessages} messages
- * @returns {NodeTypeVisitor}
- */
-function getShorthandVisitor(context, checks, messages) {
-    return getLodashMethodVisitor(context, {
+function isLodashCallToMethod(node, settings, method, context) {
+    return isLodashCall(node, settings.pragma, context) && isCallToMethod(node, settings.version, method)
+}
+
+function isCallToLodashMethod(node, method, context) {
+    if (!node) {
+        return false
+    }
+    const settings = settingsUtil.getSettings(context)
+    return isLodashCallToMethod(node, settings, method, context) ||
+        methodDataUtil.isAliasOfMethod(settings.version, method, getImportedLodashMethod(context, node))
+}
+
+function getLodashMethodVisitors(context, lodashCallExpVisitor) {
+    const visitors = getLodashImportVisitors(context)
+    visitors.CallExpression = getLodashMethodCallExpVisitor(context, lodashCallExpVisitor)
+    return visitors
+}
+
+function getShorthandVisitors(context, checks, messages) {
+    const importVisitors = getLodashImportVisitors(context)
+    importVisitors.CallExpression = getLodashMethodCallExpVisitor(context, {
         always(node, iteratee, {method, version}) {
             if (methodSupportsShorthand(version, method) && checks.canUseShorthand(iteratee)) {
                 context.report(iteratee, messages.always)
@@ -223,19 +250,7 @@ function getShorthandVisitor(context, checks, messages) {
             }
         }
     }[context.options[0] || 'always'])
-}
-
-function isLodashCallToMethod(node, settings, method) {
-    return isLodashCall(node, settings.pragma) && isCallToMethod(node, settings.version, method)
-}
-
-function isCallToLodashMethod(node, method, context) {
-    if (!node) {
-        return false
-    }
-    const settings = settingsUtil.getSettings(context)
-    return isLodashCallToMethod(node, settings, method) ||
-        methodDataUtil.isAliasOfMethod(settings.version, method, getImportedLodashMethod(context, node))
+    return importVisitors
 }
 
 module.exports = {
@@ -249,11 +264,13 @@ module.exports = {
     isNativeCollectionMethodCall,
     isImplicitChainStart,
     isExplicitChainStart,
-    getLodashMethodVisitor,
+    getLodashMethodCallExpVisitor,
     methodSupportsShorthand,
-    getShorthandVisitor,
     getImportedLodashMethod,
-    isCallToLodashMethod
+    isCallToLodashMethod,
+    getLodashImportVisitors,
+    getShorthandVisitors,
+    getLodashMethodVisitors
 }
 
 /**

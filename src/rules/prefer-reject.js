@@ -18,7 +18,7 @@ module.exports = {
     },
 
     create(context) {
-        const {isCallToLodashMethod, getLodashMethodVisitor} = require('../util/lodashUtil')
+        const {isCallToLodashMethod, getLodashMethodVisitors} = require('../util/lodashUtil')
         const {getValueReturnedInFirstStatement, getFirstParamName, isNegationOfMemberOf, isNotEqEqToMemberOf} = require('../util/astUtil')
         const {isAliasOfMethod} = require('../util/methodDataUtil')
         const DEFAULT_MAX_PROPERTY_PATH_LENGTH = 3
@@ -31,12 +31,10 @@ module.exports = {
                 isNotEqEqToMemberOf(returnValue, firstParamName, {maxLength}) || isCallToLodashMethod(func, 'negate', context)
         }
 
-        return {
-            CallExpression: getLodashMethodVisitor(context, (node, iteratee, {method, version}) => {
-                if (isAliasOfMethod(version, 'filter', method) && isNegativeExpressionFunction(iteratee)) {
-                    context.report(node, 'Prefer _.reject over negative condition')
-                }
-            })
-        }
+        return getLodashMethodVisitors(context, (node, iteratee, {method, version}) => {
+            if (isAliasOfMethod(version, 'filter', method) && isNegativeExpressionFunction(iteratee)) {
+                context.report(node, 'Prefer _.reject over negative condition')
+            }
+        })
     }
 }

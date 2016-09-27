@@ -18,7 +18,7 @@ module.exports = {
     },
 
     create(context) {
-        const {getLodashMethodVisitor} = require('../util/lodashUtil')
+        const {getLodashMethodVisitors} = require('../util/lodashUtil')
         const {isAliasOfMethod} = require('../util/methodDataUtil')
         const objectPathMethods = {
             regular: {methods: ['get', 'has', 'hasIn', 'set', 'unset', 'invoke'], index: 1},
@@ -35,7 +35,7 @@ module.exports = {
 
         function getPropertyPathNode(node, method, version, callType) {
             const index = getIndexByMethodName(method, version)
-            return node.arguments[callType === 'chained' ? index - 1: index]
+            return node.arguments[callType === 'chained' ? index - 1 : index]
         }
 
         function isLiteralComplexPath(node) {
@@ -66,13 +66,11 @@ module.exports = {
         }
 
 
-        return {
-            CallExpression: getLodashMethodVisitor(context, (node, iteratee, {method, version, callType}) => {
-                const propertyPathNode = getPropertyPathNode(node, method, version, callType)
-                if (propertyPathNode) {
-                    reportIfViolates[context.options[0] || 'string'](propertyPathNode)
-                }
-            })
-        }
+        return getLodashMethodVisitors(context, (node, iteratee, {method, version, callType}) => {
+            const propertyPathNode = getPropertyPathNode(node, method, version, callType)
+            if (propertyPathNode) {
+                reportIfViolates[context.options[0] || 'string'](propertyPathNode)
+            }
+        })
     }
 }

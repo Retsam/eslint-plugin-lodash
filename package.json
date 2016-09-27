@@ -34,7 +34,7 @@
     "coveralls": "^2.11.11",
     "eslint": "2.11.0",
     "eslint-config-wix-editor": "0.2.3",
-    "eslint-traverser": "1.1.0",
+    "eslint-traverser": "1.4.0",
     "istanbul": "^0.4.4",
     "mocha": "2.5.3"
   },

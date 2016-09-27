@@ -12,7 +12,7 @@
 
 module.exports = {
     create(context) {
-        const {getLodashMethodVisitor} = require('../util/lodashUtil')
+        const {getLodashMethodVisitors} = require('../util/lodashUtil')
         const {getMethodName} = require('../util/astUtil')
         const {version} = require('../util/settingsUtil').getSettings(context)
         const transformerMethods = ['reduce', 'reduceRight', 'transform']
@@ -36,8 +36,6 @@ module.exports = {
             }
         }
 
-        return {
-            CallExpression: getLodashMethodVisitor(context, callExpressionReporters[version])
-        }
+        return getLodashMethodVisitors(context, callExpressionReporters[version])
     }
 }

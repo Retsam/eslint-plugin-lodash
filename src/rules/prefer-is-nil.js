@@ -13,9 +13,8 @@
 module.exports = {
     create(context) {
         const {isNegationExpression, isEquivalentMemberExp} = require('../util/astUtil')
-        const {isCallToLodashMethod, getImportedLodashMethod} = require('../util/lodashUtil')
-        const {isAliasOfMethod} = require('../util/methodDataUtil')
-        const settings = require('../util/settingsUtil').getSettings(context)
+        const {isCallToLodashMethod, getLodashImportVisitors} = require('../util/lodashUtil')
+        const {combineVisitorObjects} = require('../util/ruleUtil')
         const _ = require('lodash')
         const nilChecks = {
             null: {
@@ -74,7 +73,7 @@ module.exports = {
             return leftExp && isEquivalentMemberExp(leftExp, checkNegatedExpression(rightNil, node.right))
         }
 
-        return {
+        return combineVisitorObjects({
             LogicalExpression(node) {
                 if (node.operator === '||') {
                     if (isEquivalentExistingExpression(node, 'undefined', 'null') ||
@@ -86,6 +85,6 @@ module.exports = {
                     context.report(node, 'Prefer isNil over checking for undefined or null.')
                 }
             }
-        }
+        }, getLodashImportVisitors(context))
     }
 }
